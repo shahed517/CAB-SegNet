@@ -1,7 +1,7 @@
 # NAtt-UNet
 This Repository contains the Pytorch implementation of our paper :
 
-"**NAtt-UNet: An Attention Guided Dual-StageEncoder-Decoder Framework with BoundaryConstraint for Accurate Nucleus Segmentation**"
+"**NAtt-UNet: An Attention Guided Dual-Stage Encoder-Decoder Framework with Boundary Constraint for Accurate Nucleus Segmentation**"
 
 ![main block diagram latest](https://user-images.githubusercontent.com/85427219/137955582-09477fe7-ea7e-48ae-9f24-31702bf1004c.jpg)
 
