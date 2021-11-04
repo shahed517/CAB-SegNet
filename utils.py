@@ -128,6 +128,6 @@ def produce_output_masks(test_loader, model, path, device="cuda", BATCH_SIZE = 1
                 cv2.imwrite(os.path.join(path, f'{k}_img.png'), img[b]*255)
                 cv2.imwrite(os.path.join(path, f'{k}_gt.png'), gt[b]*255)
                 cv2.imwrite(os.path.join(path, f'{k}_pred.png'), mask[b]*255)
-                cv2.imwrite(os.path.join(path, f'{k}_fore.png'), boundary[b]*255)
+                cv2.imwrite(os.path.join(path, f'{k}_boundary.png'), boundary[b]*255)
             k += 1         
     model.train()
