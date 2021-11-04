@@ -45,7 +45,7 @@ python train.py --train_dir "write your train folder here" \
 ```                
 ## Testing example
 ```
-python test.py --test_dir "write your test folder here" --img_size 256 --weights_dir "write your weightpath directory here" 
+python test.py --test_dir "write your test folder here" --img_size 256 --weights_dir "write your weightpath directory here" --img_savedir "save output images here"
 ``` 
 
 <!-- ## Citation
