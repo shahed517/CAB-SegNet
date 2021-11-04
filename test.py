@@ -28,7 +28,6 @@ args = parser.parse_args()
 
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-NUM_EPOCHS = args.epochs
 NUM_WORKERS = args.num_workers
 
 IMAGE_HEIGHT = args.img_size
