@@ -23,7 +23,7 @@ parser.add_argument('--weights_dir', type=str, required = True, default='xyz/wei
 parser.add_argument('--img_size', type=int, default=512)
 parser.add_argument('--num_workers', type=int, default=2)
 parser.add_argument('--pin_memory', type=bool, default=True)
-parser.add_argument('--img_savedir', type=bool, required = True, default='abc/img_folder')
+parser.add_argument('--img_savedir', type=str, required = True, default='abc/img_folder')
 args = parser.parse_args()
 
 
