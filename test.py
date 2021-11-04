@@ -19,11 +19,11 @@ from utils import (
 # Argument Parser
 parser = argparse.ArgumentParser(description='RA-SegNet')
 parser.add_argument('--test_dir', type=str, required = True, default='MonuSeg dataset/test_folder')
-parser.add_argument('--weights_dir', type=str, default='xyz/weights.pth.tar')
+parser.add_argument('--weights_dir', type=str, required = True, default='xyz/weights.pth.tar')
 parser.add_argument('--img_size', type=int, default=512)
 parser.add_argument('--num_workers', type=int, default=2)
 parser.add_argument('--pin_memory', type=bool, default=True)
-parser.add_argument('--img_savedir', type=bool, default='abc/img_folder')
+parser.add_argument('--img_savedir', type=bool, required = True, default='abc/img_folder')
 args = parser.parse_args()
 
 
@@ -34,8 +34,8 @@ IMAGE_HEIGHT = args.img_size
 IMAGE_WIDTH = args.img_size
 PIN_MEMORY = args.pin_memory
 
-TEST_IMG_DIR = os.path.join(args.train_dir, 'img/')
-TEST_MASK_DIR = os.path.join(args.train_dir, 'labelcol/')
+TEST_IMG_DIR = os.path.join(args.test_dir, 'img/')
+TEST_MASK_DIR = os.path.join(args.test_dir, 'labelcol/')
 path = args.img_savedir
 LOAD_MODEL_DIR = args.weights_dir
 
