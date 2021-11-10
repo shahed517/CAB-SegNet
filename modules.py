@@ -112,9 +112,9 @@ class CAM_Module(nn.Module):
         out = self.gamma * out + residual
         return out
     
-class PAM_CAM_Layer(nn.Module):
+class SAM_CAM_Layer(nn.Module):
     def __init__(self, in_ch, use_pam = True):
-        super(PAM_CAM_Layer, self).__init__()
+        super(SAM_CAM_Layer, self).__init__()
         
         self.attn = nn.Sequential(
             # nn.Conv2d(in_ch, in_ch, kernel_size=3, padding=1),
@@ -180,8 +180,6 @@ class Unet_encoder(nn.Module):
         x32 = self.conv4_enc(x)   
         return x256, x128, x64, x32
     
-
-# DAF stack 
 class attn_guided_global_brach(nn.Module):
     def __init__(self):
         super(attn_guided_global_brach, self).__init__()
@@ -264,7 +262,7 @@ class attn_guided_global_brach(nn.Module):
 
         return down_final
     
-
+# UNet building blocks have been reused from : https://github.com/cosmic-cortex/pytorch-UNet/tree/master/unet
 
 class First2D(nn.Module):
     def __init__(self, in_channels, middle_channels, out_channels, dropout=False):
