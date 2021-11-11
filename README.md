@@ -3,7 +3,9 @@ This Repository contains the Pytorch implementation of our paper :
 
 "**CAB-SegNet: An Attention Guided Dual-Stage Encoder-Decoder Framework with Boundary Constraint for Accurate Nucleus Segmentation**"
 
-![main block diagram latest](https://user-images.githubusercontent.com/85427219/141251505-74b30b4a-a040-4f72-b4fe-f67130e27af7.jpg)
+
+![main block diagram latest](https://user-images.githubusercontent.com/85427219/141252295-a55728f8-7255-4746-ab08-820c5e73bb73.jpg)
+
 <!-- ![attention_block_diagram](https://user-images.githubusercontent.com/85427219/141128709-943f6ad7-6491-4e53-9c91-3177328ff7a8.jpg) -->
 
 ## Datasets used in the paper:
@@ -14,8 +16,8 @@ This Repository contains the Pytorch implementation of our paper :
 ## Usage
 ### Clone this repository
 ```
-git clone https://github.com/shahed517/RA-SegNet
-cd RA-SegNet
+git clone https://github.com/shahed517/CAB-SegNet
+cd CAB-SegNet
 ```
 ### Python requirements
 The code is built upon Python 3.7
