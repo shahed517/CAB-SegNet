@@ -4,7 +4,9 @@ This Repository contains the Pytorch implementation of our paper :
 "**CAB-SegNet: A Context Aware Boundary Preserving Dual-Stage Network for Accurate Nucleus Segmentation**"
 
 
-![main block diagram latest](https://user-images.githubusercontent.com/85427219/141252295-a55728f8-7255-4746-ab08-820c5e73bb73.jpg)
+<!-- ![main block diagram latest](https://user-images.githubusercontent.com/85427219/141252295-a55728f8-7255-4746-ab08-820c5e73bb73.jpg) -->
+
+![main block diagram FINAL](https://user-images.githubusercontent.com/85427219/152217009-e7333fb1-9d62-477e-80cf-945a5e6f957b.jpg)
 
 <!-- ![attention_block_diagram](https://user-images.githubusercontent.com/85427219/141128709-943f6ad7-6491-4e53-9c91-3177328ff7a8.jpg) -->
 
@@ -32,8 +34,9 @@ The code is built upon Python 3.7
 - albumentations
 - Pillow
 
-### Download pretrained weights
-Download the pretrained weights from the [Google Drive Folder](https://drive.google.com/drive/folders/1wtsQrl5vgl9SKfexMSfhb8QAPnCoUZas?usp=sharing)
+<!-- ### Download pretrained weights
+Download the pretrained weights from the [Google Drive Folder](https://drive.google.com/drive/folders/1wtsQrl5vgl9SKfexMSfhb8QAPnCoUZas?usp=sharing) -->
+
 ### Preparing custom datasets
 The custom dataset should be prepared in the following format; however the image names need not necessarily be '0001', '0002' etc. Keeping the names same for the image-mask pairs should be enough. 
 ```
