@@ -12,7 +12,6 @@ import numpy as np
 
 
 class SAM_Module(nn.Module):
-    """ Spatial attention module"""
     def __init__(self, in_dim):
         super(SAM_Module, self).__init__()
         self.chanel_in = in_dim
@@ -59,7 +58,6 @@ class SAM_Module(nn.Module):
         out = self.gamma * out + residual
         return out
 
-
 class CAM_Module(nn.Module):
     """ Channel attention module"""
     def __init__(self, in_dim):
@@ -73,15 +71,6 @@ class CAM_Module(nn.Module):
         self.gamma = nn.Parameter(torch.zeros(1))
         self.softmax  = nn.Softmax(dim=-1)
     def forward(self,x):
-        """
-        Parameters:
-        ----------
-            inputs :
-                x : input feature maps( B X C X H X W)
-            returns :
-                out : attention value + input feature
-                attention: B X C X C
-        """
         m_batchsize, C, height, width = x.size()
         residual = x
         proj_query = x
@@ -113,18 +102,14 @@ class CAM_Module(nn.Module):
         return out
     
 class SAM_CAM_Layer(nn.Module):
-    def __init__(self, in_ch, use_pam = True):
+    def __init__(self, in_ch, use_sam = True):
         super(SAM_CAM_Layer, self).__init__()
         
         self.attn = nn.Sequential(
-            # nn.Conv2d(in_ch, in_ch, kernel_size=3, padding=1),
-            # nn.BatchNorm2d(in_ch),
-            # nn.ReLU(),
-            SAM_Module(in_ch) if use_pam else CAM_Module(in_ch),
+            SAM_Module(in_ch) if use_sam else CAM_Module(in_ch),
 			      nn.Conv2d(in_ch, in_ch, kernel_size=3, padding=1),
             nn.BatchNorm2d(in_ch),
-            nn.ReLU()
-        )
+            nn.ReLU(inplace=True))
     
     def forward(self, x):
         return self.attn(x)
@@ -132,53 +117,47 @@ class SAM_CAM_Layer(nn.Module):
 class Unet_encoder(nn.Module):
     def __init__(self):
         super(Unet_encoder, self).__init__()
-        self.conv0_enc = nn.Sequential(nn.Conv2d(3, 32, 3, stride = 2, padding = 1, bias = False),
-                                       nn.BatchNorm2d(32),
-                                       nn.ReLU(inplace = True),
-                                       nn.Conv2d(32, 32, 3, stride = 1, padding = 1, bias = False),
-                                       nn.BatchNorm2d(32),
-                                       nn.ReLU(inplace = True))
-        self.conv1_enc = nn.Sequential(nn.Conv2d(32, 64, 3, stride = 1, padding = 1, bias = False),
+        self.conv1_enc = nn.Sequential(nn.Conv2d(3, 64, 3, stride = 1, padding = 1, bias = False),
                                        nn.BatchNorm2d(64),
-                                       nn.ReLU(inplace = True),
+                                       nn.ReLU(inplace=True),
                                        nn.Conv2d(64, 64, 3, stride = 1, padding = 1, bias = False),
                                        nn.BatchNorm2d(64),
-                                       nn.ReLU(inplace = True))
-        self.pool1 = nn.Conv2d(64, 64, 3, stride = 2, padding = 1)
+                                       nn.ReLU(inplace=True))
+        self.pool1 = nn.MaxPool2d(kernel_size = 2)
         self.conv2_enc = nn.Sequential(nn.Conv2d(64, 128, 3, stride = 1, padding = 1, bias = False),
                                        nn.BatchNorm2d(128),
-                                       nn.ReLU(inplace = True),
+                                       nn.ReLU(inplace=True),
                                        nn.Conv2d(128, 128, 3, stride = 1, padding = 1, bias = False),
                                        nn.BatchNorm2d(128),
-                                       nn.ReLU(inplace = True))
-        self.pool2 = nn.Conv2d(128, 128, 3, stride = 2, padding = 1)
+                                       nn.ReLU(inplace=True))
+        self.pool2 = nn.MaxPool2d(kernel_size = 2)
         self.conv3_enc = nn.Sequential(nn.Conv2d(128, 256, 3, stride = 1, padding = 1, bias = False),
                                        nn.BatchNorm2d(256),
-                                       nn.ReLU(inplace = True),
+                                       nn.ReLU(inplace=True),
                                        nn.Conv2d(256, 256, 3, stride = 1, padding = 1, bias = False),
                                        nn.BatchNorm2d(256),
-                                       nn.ReLU(inplace = True))
-        self.pool3 = nn.Conv2d(256, 256, 3, stride = 2, padding = 1)
+                                       nn.ReLU(inplace=True))
+        self.pool3 = nn.MaxPool2d(kernel_size = 2)
         self.conv4_enc = nn.Sequential(nn.Conv2d(256, 512, 3, stride = 1, padding = 1, bias = False),
                                        nn.BatchNorm2d(512),
-                                       nn.ReLU(inplace = True),
+                                       nn.ReLU(inplace=True),
                                        nn.Conv2d(512, 512, 3, stride = 1, padding = 1, bias = False),
                                        nn.BatchNorm2d(512),
-                                       nn.ReLU(inplace = True))
+                                       nn.ReLU(inplace=True))
         
     def forward(self, inp):
-        x = self.conv0_enc(inp) # 32x256x256
-        x256 = self.conv1_enc(x) # 64x256x256
-        x = self.pool1(x256)
+        # x = self.conv0_enc(inp) # 64 x 512 x 512
+        x512 = self.conv1_enc(inp) # 128 x 512 x 512
+        x = self.pool1(x512)
 
-        x128 = self.conv2_enc(x) # 128x128x128
-        x = self.pool2(x128)
+        x256 = self.conv2_enc(x) # 128 x 256 x 256
+        x = self.pool2(x256)
 
-        x64 = self.conv3_enc(x)
-        x = self.pool3(x64)
+        x128 = self.conv3_enc(x)
+        x = self.pool3(x128)
 
-        x32 = self.conv4_enc(x)   
-        return x256, x128, x64, x32
+        x64 = self.conv4_enc(x)   
+        return x512, x256, x128, x64
     
 class attn_guided_global_brach(nn.Module):
     def __init__(self):
@@ -187,77 +166,80 @@ class attn_guided_global_brach(nn.Module):
 
         self.maxpool = nn.MaxPool2d(kernel_size = 2, stride = 2)
 
-        self.PAM1 = PAM_CAM_Layer(64, True) 
-        self.CAM1 = PAM_CAM_Layer(64, False)
+        self.SAM1 = SAM_CAM_Layer(64, True) 
+        self.CAM1 = SAM_CAM_Layer(64, False)
 
-        self.PAM2 = PAM_CAM_Layer(128, True) 
-        self.CAM2 = PAM_CAM_Layer(128, False)
+        self.SAM2 = SAM_CAM_Layer(128, True) 
+        self.CAM2 = SAM_CAM_Layer(128, False)
 
-        self.PAM3 = PAM_CAM_Layer(256, True) 
-        self.CAM3 = PAM_CAM_Layer(256, False) 
+        self.SAM3 = SAM_CAM_Layer(256, True) 
+        self.CAM3 = SAM_CAM_Layer(256, False) 
 
-        self.PAM4 = PAM_CAM_Layer(512, True) 
-        self.CAM4 = PAM_CAM_Layer(512, False) 
+        self.SAM4 = SAM_CAM_Layer(512, True) 
+        self.CAM4 = SAM_CAM_Layer(512, False) 
 
         self.conv1_enc = nn.Sequential(nn.Conv2d(64 + 128, 128, kernel_size = 1), 
                                       nn.BatchNorm2d(128),
-                                      nn.ReLU())
+                                      nn.ReLU(inplace=True))
         self.conv2_enc = nn.Sequential(nn.Conv2d(128 + 256, 256, kernel_size = 1), 
                                       nn.BatchNorm2d(256),
-                                      nn.ReLU())
+                                      nn.ReLU(inplace=True))
         self.conv3_enc = nn.Sequential(nn.Conv2d(256 + 512, 512, kernel_size = 1), 
                                       nn.BatchNorm2d(512),
-                                      nn.ReLU())
+                                      nn.ReLU(inplace=True))
         
-        self.conv1 = nn.Sequential(nn.Conv2d(512, 256, kernel_size = 1), 
-                                   nn.BatchNorm2d(256),
-                                   nn.ReLU())
-        self.conv2 = nn.Sequential(nn.Conv2d(256, 128, kernel_size = 1), 
+        self.conv1 = nn.Sequential(nn.Conv2d(192, 64, kernel_size = 1), 
+                                   nn.BatchNorm2d(64),
+                                   nn.ReLU(inplace=True))
+        
+        self.up = nn.ConvTranspose2d(128, 128, kernel_size=2, stride=2)
+        self.conv2 = nn.Sequential(nn.Conv2d(128, 128, kernel_size = 3, padding = 1), 
                                    nn.BatchNorm2d(128),
-                                   nn.ReLU())
+                                   nn.ReLU(inplace=True),
+                                   nn.Conv2d(128, 128, kernel_size = 3, padding = 1), 
+                                   nn.BatchNorm2d(128),
+                                   nn.ReLU(inplace=True))
+        
         self.conv3 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
         self.conv4 = nn.Sequential(nn.Conv2d(128, 64, kernel_size = 3, padding = 1), 
                                    nn.BatchNorm2d(64),
-                                   nn.ReLU(),
+                                   nn.ReLU(inplace=True),
                                    nn.Conv2d(64, 64, kernel_size = 3, padding = 1), 
                                    nn.BatchNorm2d(64),
-                                   nn.ReLU())
+                                   nn.ReLU(inplace=True))
         
-        self.conv_final = nn.Sequential(nn.ConvTranspose2d(64, 32, kernel_size=2, stride=2),
+        self.conv_final = nn.Sequential(nn.Conv2d(64, 32, kernel_size = 3, padding = 1, stride = 1), 
+                                      nn.BatchNorm2d(32),
+                                      nn.ReLU(inplace=True),
                                       nn.Conv2d(32, 32, kernel_size = 3, padding = 1, stride = 1), 
                                       nn.BatchNorm2d(32),
-                                      nn.ReLU(),
-                                      nn.Conv2d(32, 32, kernel_size = 3, padding = 1, stride = 1), 
-                                      nn.BatchNorm2d(32),
-                                      nn.ReLU())
+                                      nn.ReLU(inplace=True))
                                       
-        
     def forward(self, x):
         layer = self.encoder(x)
-        layer1 = layer[0] # 64 x 256 x 256 
-        layer2 = layer[1] # 128 x 128 x 128
-        # layer3 = layer[2] # 256 x 64 x 64
-        # layer4 = layer[3] # 512 x 32 x 32
-
-        pam1 = self.PAM1(layer1)
-        cam1 = self.CAM1(layer1)
-        refined1 = torch.add(pam1, cam1)
-        refined1 *= layer1
-
-#         layer1_downsampled = self.maxpool(layer1)
-#         layer2 = torch.cat((layer2, layer1_downsampled), dim = 1)
-#         layer2 = self.conv1_enc(layer2)
-        pam2 = self.PAM2(layer2)
+        layer1 = layer[0] # 64 x 512 x 512
+        layer2 = layer[1] # 128 x 256 x 256
+        
+        sam2 = self.SAM2(layer2)
         cam2 = self.CAM2(layer2)
-        refined2 = torch.add(pam2, cam2)
-        refined2 *= layer2
+        refined2 = torch.add(sam2, cam2)
+        refined2  = refined2 * layer2 # 128 channels
+
+        layer1 = torch.cat((self.up(refined2), layer1), dim=1) # 128 + 64 = 192 channels
+        layer1 = self.conv1(layer1) # 192 -> 64 channels
+
+        sam1 = self.SAM1(layer1)
+        cam1 = self.CAM1(layer1)
+        refined1 = torch.add(sam1, cam1)
+        refined1 = refined1 * layer1 # 64 channels
         
         ## decoder starts
+        refined2 = self.conv2(refined2) # 2 3x3 convolutions
         down2 = self.conv3(refined2) # 64, 256, 256, does an upsampling
 
         down1 = torch.cat((down2, refined1), dim=1) # 128, 256, 256
         down_final = self.conv4(down1) #64, 256, 256
-        down_final += layer1 # skip connection from layer1
+        # down_final = down_final + layer1 # skip connection from layer1
         down_final = self.conv_final(down_final) # 32, 512, 512 
 
         return down_final
