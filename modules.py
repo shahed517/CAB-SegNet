@@ -31,7 +31,7 @@ class SAM_Module(nn.Module):
     def forward(self, x):
         m_batchsize, C, height, width = x.size()
         residual = x
-        proj_query = self.query_conv(x).view(m_batchsize, -1, width*height).permute(0, 2, 1) # shape : (BS, HW, C//8)
+        proj_query = self.query_conv(x).view(m_batchsize, -1, width*height).permute(0, 2, 1) # shape : (BS, HW, C)
         proj_key = self.key_conv(x) # .view(m_batchsize, -1, width*height)
         proj_value = self.value_conv(x)
         x = proj_key
@@ -51,7 +51,7 @@ class SAM_Module(nn.Module):
         flat4 = self.pool4(x).view(m_batchsize, C, -1)
         x = torch.cat((flat1, flat2, flat3, flat4), dim = 2) # shape : (BS, C//8, S = 110)
         x = x.permute(0, 2, 1)
-        out = torch.bmm(attention, x) # shape : (BS, N, C//8)
+        out = torch.bmm(attention, x) 
 
         out = out.view(m_batchsize, C, height, width)
 
@@ -64,6 +64,9 @@ class CAM_Module(nn.Module):
         super(CAM_Module, self).__init__()
         self.chanel_in = in_dim
         self.pool_sizes = [1, 3, 7, 11]
+        self.query_conv = nn.Conv2d(in_channels=in_dim, out_channels=in_dim, kernel_size=1, padding = 0)
+        self.key_conv = nn.Conv2d(in_channels=in_dim, out_channels=in_dim, kernel_size=1, padding = 0)
+        self.value_conv = nn.Conv2d(in_channels=in_dim, out_channels=in_dim, kernel_size=1, padding = 0)
         self.pool1 = nn.AdaptiveAvgPool2d((self.pool_sizes[0], self.pool_sizes[0]))
         self.pool2 = nn.AdaptiveAvgPool2d((self.pool_sizes[1], self.pool_sizes[1]))
         self.pool3 = nn.AdaptiveAvgPool2d((self.pool_sizes[2], self.pool_sizes[2]))
@@ -72,17 +75,19 @@ class CAM_Module(nn.Module):
         self.softmax  = nn.Softmax(dim=-1)
     def forward(self,x):
         m_batchsize, C, height, width = x.size()
+        proj_query = self.query_conv(x).view(m_batchsize, -1, width*height)
+        proj_key = self.key_conv(x) 
+        proj_value = self.value_conv(x)
         residual = x
-        proj_query = x
-        x = proj_query
+
+        x = proj_value
         flat1 = self.pool1(x).view(m_batchsize, C, -1)
         flat2 = self.pool2(x).view(m_batchsize, C, -1)
         flat3 = self.pool3(x).view(m_batchsize, C, -1)
         flat4 = self.pool4(x).view(m_batchsize, C, -1)
         x1 = torch.cat((flat1, flat2, flat3, flat4), dim = 2) # shape : (BS, C, S = 110)
 
-        proj_key = residual#.view(m_batchsize, C, -1).permute(0, 2, 1)
-        x = proj_key
+        x = proj_key 
         flat1 = self.pool1(x).view(m_batchsize, C, -1)
         flat2 = self.pool2(x).view(m_batchsize, C, -1)
         flat3 = self.pool3(x).view(m_batchsize, C, -1)
@@ -90,12 +95,11 @@ class CAM_Module(nn.Module):
         x2 = torch.cat((flat1, flat2, flat3, flat4), dim = 2).permute(0, 2, 1) # shape : (BS, S = 110, C)
 
        
-        energy = torch.bmm(x1, x2)
-        energy_new = torch.max(energy, -1, keepdim=True)[0].expand_as(energy)-energy
-        attention = self.softmax(energy_new)
-        proj_value = residual.view(m_batchsize, C, -1)
+        energy = torch.bmm(x1, x2) # shape : (BS, C, C)
+        attention = self.softmax(energy)
+        proj_query = proj_query.view(m_batchsize, C, -1)
 
-        out = torch.bmm(attention, proj_value)
+        out = torch.bmm(attention, proj_query)
         out = out.view(m_batchsize, C, height, width)
 
         out = self.gamma * out + residual
@@ -223,7 +227,6 @@ class attn_guided_global_brach(nn.Module):
         sam2 = self.SAM2(layer2)
         cam2 = self.CAM2(layer2)
         refined2 = torch.add(sam2, cam2)
-        refined2  = refined2 * layer2 # 128 channels
 
         layer1 = torch.cat((self.up(refined2), layer1), dim=1) # 128 + 64 = 192 channels
         layer1 = self.conv1(layer1) # 192 -> 64 channels
@@ -231,7 +234,6 @@ class attn_guided_global_brach(nn.Module):
         sam1 = self.SAM1(layer1)
         cam1 = self.CAM1(layer1)
         refined1 = torch.add(sam1, cam1)
-        refined1 = refined1 * layer1 # 64 channels
         
         ## decoder starts
         refined2 = self.conv2(refined2) # 2 3x3 convolutions
