@@ -9,6 +9,24 @@ class stage1_enc_dec(nn.Module):
     self.local_net = UNet(3, 1) # seond parameter is not needed to be defined
     self.global_net = attn_guided_global_brach()
     
+    self.conv1 = nn.Sequential(nn.Conv2d(32, 32, kernel_size = 3, padding = 1, stride = 1), ### ks changed from 1 to 3
+                              nn.BatchNorm2d(32),
+                              nn.ReLU(inplace=True))
+    
+    self.conv2 = nn.Conv2d(32, 1, kernel_size = 1, padding = 0, stride = 1)                              
+    
+  def forward(self, x):
+    x_ = torch.add(self.local_net(x), self.global_net(x))
+    x1 = self.conv1(x_)
+    x2 = self.conv2(x1)
+    return x1, x2 # x1 : 32 channels, x2 : 1 channel (segmentation map)
+  
+class stage1_enc_dec(nn.Module):
+  def __init__(self):
+    super(stage1_enc_dec, self).__init__()
+    self.local_net = UNet(3, 1) # seond parameter is not needed to be defined
+    self.global_net = attn_guided_global_brach()
+    
     self.conv1 = nn.Sequential(nn.Conv2d(32, 32, kernel_size = 1, padding = 0, stride = 1),
                               nn.BatchNorm2d(32),
                               nn.ReLU())
@@ -82,11 +100,17 @@ class stage2_enc_dec(nn.Module):
 class Final_Model(nn.Module):
     def __init__(self):
         super(Final_Model, self).__init__()
-        self.GearFirst = stage1_enc_dec()
         self.GearSecond = stage2_enc_dec()
+        self.GearFirst = stage1_enc_dec()
+        # self.freeze_G1()
 
-    def forward(self, x):
-        x = self.GearFirst(x)
+    def freeze_G1(self):
+        for param in self.GearFirst.parameters():
+          param.requires_grad = False
+
+    def forward(self, input):
+        x, _ = self.GearFirst(input) # 32 ch, 1 ch (input)
+        # x = torch.cat((x, input), dim = 1)
         mask, boundary = self.GearSecond(x)
         return mask, boundary # mask, boundary predictions
     
