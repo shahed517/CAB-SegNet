@@ -19,23 +19,8 @@ class stage1_enc_dec(nn.Module):
     x_ = torch.add(self.local_net(x), self.global_net(x))
     x1 = self.conv1(x_)
     x2 = self.conv2(x1)
-    return x1, x2 # x1 : 32 channels, x2 : 1 channel (segmentation map)
+    return x1, x2
   
-class stage1_enc_dec(nn.Module):
-  def __init__(self):
-    super(stage1_enc_dec, self).__init__()
-    self.local_net = UNet(3, 1) # seond parameter is not needed to be defined
-    self.global_net = attn_guided_global_brach()
-    
-    self.conv1 = nn.Sequential(nn.Conv2d(32, 32, kernel_size = 1, padding = 0, stride = 1),
-                              nn.BatchNorm2d(32),
-                              nn.ReLU())
-    
-    
-  def forward(self, x):
-    x = torch.add(self.local_net(x), self.global_net(x))
-    x1 = self.conv1(x)
-    return x1 
 
 class stage2_enc_dec(nn.Module):
     # this stage contains both the mask and boundary generators
